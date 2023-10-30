@@ -1,0 +1,14 @@
+Mois,QmM  Débit moyen mensuel (en l/s),Qsp  Débit spécifique (en l/s/km²),Lame d'eau  (en mm)
+Janvier,45,225,60
+Février,41,205,50
+Mars,41,205,55
+Avril,42,21,54
+Mai,40,20,54
+Juin,24,12,31
+Juillet,10,5,13
+Août,7,35,9
+Septembre,10,5,13
+Octobre,23,115,31
+Novembre,42,21,54
+Décembre,45,225,60
+Année,31,155,489

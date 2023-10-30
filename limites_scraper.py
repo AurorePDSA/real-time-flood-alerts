@@ -6,6 +6,8 @@ from shapely.geometry import Point
 from geopandas import GeoDataFrame
 import plotly.express as px
 import plotly.io as pio
+from urllib.error import HTTPError
+
 # Set notebook mode to work in offline
 pio.renderers.default = 'iframe'
 
@@ -42,24 +44,23 @@ from bs4 import BeautifulSoup
 
 # WebScrapping pour récupérer les limites de chaque station (Crue du 29/01/2018)
 dict_limites = {}
+url = "https://www.hydro.eaufrance.fr/stationhydro/R608001003/synthese"
+coutn = 0
+
 for code in codes:
     url = f"https://www.hydro.eaufrance.fr/stationhydro/{code}/synthese"
-    requesting = requests.get(url)
-    soup = BeautifulSoup(requesting.content, "lxml")
-
-    paragraph_tags = soup.find_all('td')
+    
     try:
-        text = paragraph_tags[1].text        
-        text2 = text.replace(' ', '')
-        text3 = re.search(r'\d+ l/s', text2).group(0)
-        text4 = text3[:-4]
-        debit = int(text4)        
-        dict_limites[code] = debit
-        with open('stations.txt', 'a') as file:
-            file.write(code+':'+str(debit)+'\n')
-        #if hauteur < 50000:  # on élimine les valeurs abérantes ou les stations qui n'ont pas de données pour la crue de 2018
-            
-    except (IndexError, AttributeError):
-        print("station", code, "ne peut pas fournir les données désirées")
+        data_limites = pd.read_html(url, match='Janvier', flavor='lxml')[0]
+        data_limites = data_limites.rename(columns={'Unnamed: 0':'Mois'})
+        data_limites.to_csv(f'/home/louiscockenpot/Documents/real-time-flood-alerts/data_limites/data_limites_{code}',columns=['Mois','QmM  Débit moyen mensuel (en l/s)','Qsp  Débit spécifique (en l/s/km²)','Lame d\'eau  (en mm)'],index=False)
+        print(f"{code} table saved")
+        coutn = coutn+1
+    except (ValueError, HTTPError):
+        print(f'no limits found for {code}')
+
+print("Total",coutn)
+
+    
 
 
