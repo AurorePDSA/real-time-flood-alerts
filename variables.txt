@@ -1,0 +1,27 @@
+Données sur les stations
+ 0   code_site
+ 1   code_station
+ 2   longitude_station
+ 3   latitude_station
+ 4   influence_locale_station
+ 5   code_commune_station
+ 6   code_departement
+ 7   code_region
+ 8   code_cours_eau
+ 9   uri_cours_eau
+ 10  code_regime_station
+ 11  qualification_donnees_station
+ 12  code_finalite_station
+
+Données sur les observations
+ 0   Q (débit instantané)
+ 1   H (hauteur instantanée)
+ 2   QmJ (débit moyen journalier)
+ 3   QmM (débit moyen mensuel)
+ 4   moyennes_interannuelles (écoulements mensuels)
+ 5   seuil_hauteur
+ 6   seuil_débit
+
+Données météos
+ 0   precipitation_instantanée
+ 1   prevision_precipitation_1h
