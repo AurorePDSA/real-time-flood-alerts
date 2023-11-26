@@ -9,7 +9,7 @@ import concurrent.futures
 
 st.set_page_config(layout="centered")
 
-home_tab, observations_tab, stations_tab = st.tabs(["Home", "Observations", "Stations"])
+home_tab, stations_tab, observations_tab = st.tabs(["Home", "Stations", "Observations"])
 
 regions_codes = {'GRAND EST': "44", 'HAUTS-DE-FRANCE': "32", 'BOURGOGNE-FRANCHE-COMTE': "27", 'ILE-DE-FRANCE': "11",
                  'CENTRE-VAL DE LOIRE': "24", 'NORMANDIE': "28", 'BRETAGNE': "53", 'PAYS DE LA LOIRE': "52",
@@ -28,7 +28,10 @@ def get_stations(working, regions, selected_location=None, distance=None):
     if regions and len(regions) > 0:
         params["code_region"] = regions
 
+
+
     response_stations = requests.get(url_stations, params=params)
+    print(response_stations.url)
 
     if response_stations.status_code in (200, 206):
         data_stations = response_stations.json()
@@ -83,8 +86,14 @@ with home_tab:
     with right_col:
         st.write("")
 
-with observations_tab:
-    st.markdown("<h1 style='text-align: center;'>Observations</h1>", unsafe_allow_html=True)
+with stations_tab:
+    st.markdown("<h1 style='text-align: center;'>Stations</h1>", unsafe_allow_html=True)
+    regions_selected = st.multiselect("Choose a region", list(regions_codes.keys()))
+    working_stations = st.checkbox("Working stations only")
+    code_regions_selected = [regions_codes[region] for region in regions_selected]
+    data = get_stations(working_stations, code_regions_selected)
+    st.write(data.shape[0], "stations found")
+    st.map(data)
 
 
 def fetch_data(params):
@@ -97,6 +106,7 @@ def fetch_data(params):
         print(response.text, response.status_code)
         print(f'error here response: {e}')
     return 0,response
+
 
 
 def add_color_to_data(data):
@@ -195,9 +205,9 @@ def add_color_to_data(data):
                     data.at[index, "color"] = "#00DD00"
     data.reset_index(inplace=True)
 
-with stations_tab:
-    st.markdown("<h1 style='text-align: center;'>Stations</h1>", unsafe_allow_html=True)
 
+with observations_tab:
+    st.markdown("<h1 style='text-align: center;'>Observations</h1>", unsafe_allow_html=True)
     search_option = st.radio("Choisissez une option de recherche", ["Par région", "Autour d'un point central"])
 
     if search_option == "Par région":
@@ -206,7 +216,7 @@ with stations_tab:
         code_regions_selected = [regions_codes[region] for region in regions_selected]
         data = get_stations(working_stations_checkbox, code_regions_selected)
         st.write(data.shape[0], "stations trouvées")
-        if len(data) <= 75*20 or True:
+        if len(data) <= 75 * 20 or True:
             add_color_to_data(data)
             st.map(data, latitude="latitude", longitude="longitude", color="color")
         else:
@@ -214,7 +224,8 @@ with stations_tab:
     elif search_option == "Autour d'un point central":
         selected_location_input = st.text_input(
             "Entrez les coordonnées (latitude, longitude) du point central, ex: 47.037186, -0.388035")
-        distance_input = st.number_input("Entrez la distance en kilomètres", min_value=0.1, max_value=100.0, step=1.0, value=40.0)
+        distance_input = st.number_input("Entrez la distance en kilomètres", min_value=0.1, max_value=100.0, step=1.0,
+                                         value=40.0)
 
         if selected_location_input:
             selected_location = [float(coord.strip()) for coord in selected_location_input.split(',')]
@@ -231,4 +242,10 @@ with stations_tab:
                 st.warning("Aucune donnée de station disponible.")
         else:
             st.warning("Veuillez entrer les coordonnées du point central.")
+
+
+
+
+
+
 
