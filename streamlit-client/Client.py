@@ -28,8 +28,6 @@ def get_stations(working, regions, selected_location=None, distance=None):
     if regions and len(regions) > 0:
         params["code_region"] = regions
 
-
-
     response_stations = requests.get(url_stations, params=params)
     print(response_stations.url)
 
@@ -89,8 +87,8 @@ with home_tab:
 with stations_tab:
     st.markdown("<h1 style='text-align: center;'>Stations</h1>", unsafe_allow_html=True)
     regions_selected = st.multiselect("Choose a region", list(regions_codes.keys()))
-    working_stations = st.checkbox("Working stations only")
-    code_regions_selected = [regions_codes[region] for region in regions_selected]
+    working_stations = st.checkbox("Working stations only", value=True)
+    code_regions_selected = [regions_codes[region] for region in regions_selected ]if len(regions_selected)<len(regions_codes) else []
     data = get_stations(working_stations, code_regions_selected)
     st.write(data.shape[0], "stations found")
     st.map(data)
@@ -177,6 +175,8 @@ def add_color_to_data(data):
                     data.at[index, "resultat_obs_Q"] = value
 
     data["color"] = ""
+    data['size'] = 1.0
+
     for index, row in data.iterrows():
         code_station = row["code_station"]
         hauteur = row["resultat_obs_hydro"]
@@ -186,8 +186,10 @@ def add_color_to_data(data):
         if code_station in limites_H:
             if hauteur > limites_H[code_station]:
                 data.at[index, "color"] = "#DD0000"
+                data.at[index, "size"] = 2.0
             elif hauteur > 0.75 * limites_H[code_station]:
                 data.at[index, "color"] = "#FFA500"
+                data.at[index, "size"] = 1.5
             else:
                 data.at[index, "color"] = "#00DD00"
         else:
@@ -197,9 +199,11 @@ def add_color_to_data(data):
         if code_station in limites_Q:
             if debit > limites_Q[code_station]:
                 data.at[index, "color"] = "#DD0000"
+                data.at[index, "size"] = 2.0
             elif debit > 0.75 * limites_Q[code_station]:
                 if data.at[index, "color"] != "#DD0000":
                     data.at[index, "color"] = "#FFA500"
+                    data.at[index, "size"] = 1.5
             else:
                 if data.at[index, "color"] not in ["#DD0000", "#FFA500"]:
                     data.at[index, "color"] = "#00DD00"
@@ -208,17 +212,17 @@ def add_color_to_data(data):
 
 with observations_tab:
     st.markdown("<h1 style='text-align: center;'>Observations</h1>", unsafe_allow_html=True)
-    search_option = st.radio("Choisissez une option de recherche", ["Par région", "Autour d'un point central"])
+    search_option = st.radio("Choisissez une option de recherche", ["Aucun", "Par région", "Autour d'un point central"])
 
     if search_option == "Par région":
         regions_selected = st.multiselect("Choisissez une région", list(regions_codes.keys()))
-        working_stations_checkbox = st.checkbox("Stations en service uniquement")
+        working_stations_checkbox = st.checkbox("Stations en service uniquement", value= True)
         code_regions_selected = [regions_codes[region] for region in regions_selected]
         data = get_stations(working_stations_checkbox, code_regions_selected)
         st.write(data.shape[0], "stations trouvées")
         if len(data) <= 75 * 20 or True:
             add_color_to_data(data)
-            st.map(data, latitude="latitude", longitude="longitude", color="color")
+            st.map(data, latitude="latitude", longitude="longitude", color="color", size='size')
         else:
             st.map(data)
     elif search_option == "Autour d'un point central":
@@ -237,7 +241,7 @@ with observations_tab:
             if data is not None:
                 add_color_to_data(data)
                 st.write(data.shape[0], "stations trouvées")
-                st.map(data, latitude="latitude", longitude="longitude", color="color")
+                st.map(data, latitude="latitude", longitude="longitude", color="color", size='size')
             else:
                 st.warning("Aucune donnée de station disponible.")
         else:
