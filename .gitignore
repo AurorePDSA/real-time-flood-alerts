@@ -161,3 +161,4 @@ cython_debug/
 
 #pioplot
 iframe_figures/
+real-time/data/rain_history/donnees-synop-essentielles-omm.csv
