@@ -234,7 +234,7 @@ with observations_tab:
         if selected_location_input:
             selected_location = [float(coord.strip()) for coord in selected_location_input.split(',')]
             st.write(f"Point central sélectionné : {selected_location}")
-            data = get_stations(st.checkbox("Stations en service uniquement"), None,
+            data = get_stations(st.checkbox("Stations en service uniquement", value=True), None,
                                 {"latitude": selected_location[0], "longitude": selected_location[1]},
                                 distance=distance_input)
 
