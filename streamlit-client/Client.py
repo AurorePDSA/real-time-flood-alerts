@@ -1,10 +1,10 @@
 import datetime
 import streamlit as st
 import requests
-import pandas as pd
 from geopy.distance import geodesic
 import requests
 import concurrent.futures
+import pandas as pd
 
 
 st.set_page_config(layout="centered")
@@ -209,6 +209,32 @@ def add_color_to_data(data):
                     data.at[index, "color"] = "#00DD00"
     data.reset_index(inplace=True)
 
+def determine_sites_a_risques(data, limites_H, limites_Q):
+    sites_a_risques = []
+
+    for index, row in data.iterrows():
+        code_station = row["code_station"]
+        hauteur = row["resultat_obs_hydro"]
+        debit = row["resultat_obs_Q"]
+
+        if code_station in limites_H and hauteur > limites_H[code_station]:
+            sites_a_risques.append({
+                "code_station": code_station,
+                "grandeur_hydro": "H",
+                "seuil_max": limites_H[code_station],
+                "valeur_actuelle": hauteur
+            })
+
+        if code_station in limites_Q and debit > limites_Q[code_station]:
+            sites_a_risques.append({
+                "code_station": code_station,
+                "grandeur_hydro": "Q",
+                "seuil_max": limites_Q[code_station],
+                "valeur_actuelle": debit
+            })
+
+    return pd.DataFrame(sites_a_risques)
+
 
 with observations_tab:
     st.markdown("<h1 style='text-align: center;'>Observations</h1>", unsafe_allow_html=True)
@@ -222,13 +248,21 @@ with observations_tab:
         st.write(data.shape[0], "stations trouvées")
         if len(data) <= 75 * 20 or True:
             add_color_to_data(data)
-            st.map(data, latitude="latitude", longitude="longitude", color="color", size='size')
+
+            filtered_data = data[data['color'].isin(["#DD0000", "#FFA500","#000000"])].reset_index()
+            st.map(filtered_data, latitude="latitude", longitude="longitude", color="color", size='size')
+
         else:
             st.map(data)
+
+        st.markdown("<h2>Stations à Risques</h2>", unsafe_allow_html=True)
+        stations_a_risques_data = determine_sites_a_risques(data, limites_H, limites_Q)
+        st.dataframe(stations_a_risques_data)
+
     elif search_option == "Autour d'un point central":
         selected_location_input = st.text_input(
             "Entrez les coordonnées (latitude, longitude) du point central, ex: 47.037186, -0.388035")
-        distance_input = st.number_input("Entrez la distance en kilomètres", min_value=0.1, max_value=100.0, step=1.0,
+        distance_input = st.number_input("Entrez la distance en kilomètres", min_value=0.1, max_value=500.0, step=1.0,
                                          value=40.0)
 
         if selected_location_input:
@@ -238,14 +272,33 @@ with observations_tab:
                                 {"latitude": selected_location[0], "longitude": selected_location[1]},
                                 distance=distance_input)
 
+
+
             if data is not None:
                 add_color_to_data(data)
                 st.write(data.shape[0], "stations trouvées")
-                st.map(data, latitude="latitude", longitude="longitude", color="color", size='size')
+                central_point_data = pd.DataFrame({
+                    "latitude": [selected_location[0]],
+                    "longitude": [selected_location[1]],
+                    "color": ["#000000"],
+                    "size": [50]
+                })
+                data = pd.concat([data, central_point_data], ignore_index=True)
+
+                filtered_data = data[data['color'].isin(["#DD0000", "#FFA500", "#000000"])].reset_index()
+                st.map(filtered_data, latitude="latitude", longitude="longitude", color="color", size='size')
+
+                st.markdown("<h2>Stations à Risques</h2>", unsafe_allow_html=True)
+                stations_a_risques_data = determine_sites_a_risques(data, limites_H, limites_Q)
+                st.dataframe(stations_a_risques_data)
+
             else:
                 st.warning("Aucune donnée de station disponible.")
         else:
             st.warning("Veuillez entrer les coordonnées du point central.")
+
+
+
 
 
 
