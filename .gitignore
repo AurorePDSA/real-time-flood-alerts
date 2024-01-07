@@ -163,3 +163,5 @@ cython_debug/
 iframe_figures/
 
 .idea/
+
+real-time/data/rain_history/donnees-synop-essentielles-omm.csv

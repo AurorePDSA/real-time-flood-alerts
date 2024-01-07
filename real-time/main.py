@@ -5,10 +5,11 @@ from meteofrance_api import MeteoFranceClient
 file_path = "../coord_stations_exploitables.txt"
 
 df = pd.read_csv(file_path, sep=',', names=['Latitude', 'Longitude'])
-df = df.head(50)
+#df = df.head(50)
 
 # Initialisation du client MeteoFrance
 client = MeteoFranceClient()
+
 
 def get_precipitation(lat, lon, client):
     try:
@@ -16,7 +17,10 @@ def get_precipitation(lat, lon, client):
         forecast = obs.forecast
         total_rain = sum(item['rain'] for item in forecast)
         avg = total_rain / len(forecast)
-        return forecast, avg
+        return forecast, forecast[0]['rain']
+
+        #return forecast[0]
+
     except Exception as e:
         print(f"Erreur lors de la récupération des données météorologiques : {e}")
         return [], 0
